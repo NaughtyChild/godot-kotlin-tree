@@ -9,7 +9,7 @@ object GDTree {
     val Waypoint = WaypointScene("/root")
 }
 
-class MainScene(private val path: String) : NodeRef<Node3D>("$path/Main", "Node3D") {
+open class MainScene(private val path: String) : NodeRef<Node3D>("$path/Main", "Node3D") {
     val BlueCube = BlueCubeTree()
     val GreenCube = GreenCubeTree()
     val YellowCube = YellowCubeTree()
@@ -57,7 +57,7 @@ class MainScene(private val path: String) : NodeRef<Node3D>("$path/Main", "Node3
     }
 }
 
-class WaypointScene(private val path: String) : NodeRef<Control>("$path/Waypoint", "Control") {
+open class WaypointScene(private val path: String) : NodeRef<Control>("$path/Waypoint", "Control") {
     val Label = NodeRef<Label>("$path/Waypoint/Label", "Label")
     val Marker = NodeRef<TextureRect>("$path/Waypoint/Marker", "TextureRect")
 }

@@ -47,11 +47,11 @@ class NodeTreeRenderer {
             )
 
             is LeafNode -> """
-            |class ${scene.name}Scene(private val path: String) : NodeRef<${root.type}>("$nodePath", "${root.type}")
+            |open class ${scene.name}Scene(private val path: String) : NodeRef<${root.type}>("$nodePath", "${root.type}")
             """.trimMargin()
 
             is NestedScene -> """
-            |class ${scene.name}Scene(private val path: String) : ${root.scene}Scene(path)
+            |open class ${scene.name}Scene(private val path: String) : ${root.scene}Scene(path)
             """.trimMargin()
         }
     }
@@ -99,7 +99,7 @@ class NodeTreeRenderer {
     ): String {
         val (classType, constructor) = when (nestedClass) {
             true -> "inner class" to ""
-            false -> "class" to "(private val path: String)"
+            false -> "open class" to "(private val path: String)"
         }
         val header = """
         |$classType $className$constructor : NodeRef<${node.type}>("$nodePath", "${node.type}")

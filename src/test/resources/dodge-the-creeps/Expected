@@ -11,14 +11,14 @@ object GDTree {
     val Player = PlayerScene("/root")
 }
 
-class HUDScene(private val path: String) : NodeRef<CanvasLayer>("$path/HUD", "CanvasLayer") {
+open class HUDScene(private val path: String) : NodeRef<CanvasLayer>("$path/HUD", "CanvasLayer") {
     val ScoreLabel = NodeRef<Label>("$path/HUD/ScoreLabel", "Label")
     val MessageLabel = NodeRef<Label>("$path/HUD/MessageLabel", "Label")
     val StartButton = NodeRef<Button>("$path/HUD/StartButton", "Button")
     val MessageTimer = NodeRef<Timer>("$path/HUD/MessageTimer", "Timer")
 }
 
-class MainScene(private val path: String) : NodeRef<Node>("$path/Main", "Node") {
+open class MainScene(private val path: String) : NodeRef<Node>("$path/Main", "Node") {
     val ColorRect = NodeRef<ColorRect>("$path/Main/ColorRect", "ColorRect")
     val Player = PlayerScene("$path/Main/Player")
     val MobTimer = NodeRef<Timer>("$path/Main/MobTimer", "Timer")
@@ -35,13 +35,13 @@ class MainScene(private val path: String) : NodeRef<Node>("$path/Main", "Node") 
     }
 }
 
-class MobScene(private val path: String) : NodeRef<RigidBody2D>("$path/Mob", "RigidBody2D") {
+open class MobScene(private val path: String) : NodeRef<RigidBody2D>("$path/Mob", "RigidBody2D") {
     val AnimatedSprite2D = NodeRef<AnimatedSprite2D>("$path/Mob/AnimatedSprite2D", "AnimatedSprite2D")
     val CollisionShape2D = NodeRef<CollisionShape2D>("$path/Mob/CollisionShape2D", "CollisionShape2D")
     val VisibleOnScreenNotifier2D = NodeRef<VisibleOnScreenNotifier2D>("$path/Mob/VisibleOnScreenNotifier2D", "VisibleOnScreenNotifier2D")
 }
 
-class PlayerScene(private val path: String) : NodeRef<Area2D>("$path/Player", "Area2D") {
+open class PlayerScene(private val path: String) : NodeRef<Area2D>("$path/Player", "Area2D") {
     val AnimatedSprite2D = NodeRef<AnimatedSprite2D>("$path/Player/AnimatedSprite2D", "AnimatedSprite2D")
     val CollisionShape2D = NodeRef<CollisionShape2D>("$path/Player/CollisionShape2D", "CollisionShape2D")
     val Trail = NodeRef<GPUParticles2D>("$path/Player/Trail", "GPUParticles2D")
