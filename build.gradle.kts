@@ -5,7 +5,7 @@ import java.util.*
 
 val localProperties = loadLocalProps()
 
-version = "1.0.0"
+version = "1.1.0"
 group = "io.github.tomwyr"
 description = "A type-safe Godot node tree representation in Kotlin"
 
@@ -20,9 +20,21 @@ repositories {
     mavenCentral()
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+}
+
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
-    implementation("net.java.dev.jna:jna:5.17.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     testImplementation(kotlin("test"))
 }
@@ -49,11 +61,6 @@ gradlePlugin {
             implementationClass = "com.tomwyr.GodotKotlinTree"
         }
     }
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
 }
 
 fun bindProp(key: String) {

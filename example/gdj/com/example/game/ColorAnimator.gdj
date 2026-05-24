@@ -22,5 +22,5 @@ properties = [
     
 ]
 functions = [
-    _ready
+    _process
 ]

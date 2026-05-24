@@ -1,14 +1,21 @@
 plugins {
     id("com.utopia-rise.godot-kotlin-jvm") version "0.13.1-4.4.1"
-    id("io.github.tomwyr.godot-kotlin-tree") version "1.0.0"
+    id("io.github.tomwyr.godot-kotlin-tree") version "1.1.0"
 }
 
 repositories {
     mavenCentral()
 }
 
-kotlin {
-    jvmToolchain(21)
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions {
+        jvmTarget = "21"
+    }
 }
 
 godot {

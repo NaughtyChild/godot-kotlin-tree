@@ -46,7 +46,6 @@ const val basePath = "src/test/resources/"
 
 fun setUpTestCommand(testCase: String, packageName: String): GenerateTreeCommand {
     return GenerateTreeCommand(
-        libPath = "libGodotNodeTreeCore" + getLibExtension(),
         projectPath = "$basePath/$testCase/scenes",
         validateProjectPath = false,
         outputPath = "$basePath/$testCase/Actual",
@@ -54,19 +53,9 @@ fun setUpTestCommand(testCase: String, packageName: String): GenerateTreeCommand
     )
 }
 
-fun getLibExtension(): String {
-    val osName = System.getProperty("os.name")
-    return when {
-        osName.contains("Mac", ignoreCase = true) -> ".dylib"
-        osName.contains("Linux", ignoreCase = true) -> ".so"
-        osName.contains("Windows", ignoreCase = true) -> ".dll"
-        else -> throw UnsupportedOperationException("Unsupported OS")
-    }
-}
-
 fun assertOutputsEqual(testCase: String) {
-    val expected = File("$basePath/$testCase/Expected").readText(Charsets.UTF_8)
-    val actual = File("$basePath/$testCase/Actual").readText(Charsets.UTF_8)
+    val expected = File("$basePath/$testCase/Expected").readText(Charsets.UTF_8).replace("\r\n", "\n")
+    val actual = File("$basePath/$testCase/Actual").readText(Charsets.UTF_8).replace("\r\n", "\n")
     assertEquals(expected, actual)
 }
 

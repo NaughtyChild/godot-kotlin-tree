@@ -1,3 +1,12 @@
+pluginManagement {
+    includeBuild("F:/dev/godot/godotTree")
+
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
 
 plugins {
     // to automatically download the toolchain jdk if missing
