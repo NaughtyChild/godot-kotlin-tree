@@ -30,6 +30,11 @@ class GeneratorTest {
     fun `multiple scenes`() {
         test("dodge-the-creeps", "com.example.game")
     }
+
+    @Test
+    fun `nested scene instances with renamed roots`() {
+        test("nested-instance", "com.nested.instance")
+    }
 }
 
 fun test(testCase: String, packageName: String) {

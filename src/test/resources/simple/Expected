@@ -5,14 +5,14 @@ import godot.core.NodePath
 import kotlin.reflect.KProperty
 
 object GDTree {
-    val Main = MainScene("/root")
+    val Main = MainScene("/root/Root")
 }
 
-open class MainScene(private val path: String) : NodeRef<GridContainer>("$path/Root", "GridContainer") {
-    val KotlinGDJ = NodeRef<Label>("$path/Root/Kotlin GDJ", "Label")
-    val JavaGDJ = NodeRef<Label>("$path/Root/Java GDJ", "Label")
-    val KotlinSource = NodeRef<Label>("$path/Root/Kotlin source", "Label")
-    val JavaSource = NodeRef<Label>("$path/Root/Java source", "Label")
+open class MainScene(private val path: String) : NodeRef<GridContainer>(path, "GridContainer") {
+    val KotlinGDJ = NodeRef<Label>("$path/Kotlin GDJ", "Label")
+    val JavaGDJ = NodeRef<Label>("$path/Java GDJ", "Label")
+    val KotlinSource = NodeRef<Label>("$path/Kotlin source", "Label")
+    val JavaSource = NodeRef<Label>("$path/Java source", "Label")
 }
 
 open class NodeRef<T : Node>(

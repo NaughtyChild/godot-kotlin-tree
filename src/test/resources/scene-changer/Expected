@@ -5,18 +5,18 @@ import godot.core.NodePath
 import kotlin.reflect.KProperty
 
 object GDTree {
-    val SceneA = SceneAScene("/root")
-    val SceneB = SceneBScene("/root")
+    val SceneA = SceneAScene("/root/SceneA")
+    val SceneB = SceneBScene("/root/SceneB")
 }
 
-open class SceneAScene(private val path: String) : NodeRef<Panel>("$path/SceneA", "Panel") {
-    val Label = NodeRef<Label>("$path/SceneA/Label", "Label")
-    val GoToScene = NodeRef<Button>("$path/SceneA/GoToScene", "Button")
+open class SceneAScene(private val path: String) : NodeRef<Panel>(path, "Panel") {
+    val Label = NodeRef<Label>("$path/Label", "Label")
+    val GoToScene = NodeRef<Button>("$path/GoToScene", "Button")
 }
 
-open class SceneBScene(private val path: String) : NodeRef<Panel>("$path/SceneB", "Panel") {
-    val Label = NodeRef<Label>("$path/SceneB/Label", "Label")
-    val GoToScene = NodeRef<Button>("$path/SceneB/GoToScene", "Button")
+open class SceneBScene(private val path: String) : NodeRef<Panel>(path, "Panel") {
+    val Label = NodeRef<Label>("$path/Label", "Label")
+    val GoToScene = NodeRef<Button>("$path/GoToScene", "Button")
 }
 
 open class NodeRef<T : Node>(

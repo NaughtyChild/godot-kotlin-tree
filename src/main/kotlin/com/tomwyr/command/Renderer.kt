@@ -26,7 +26,9 @@ class NodeTreeRenderer {
     }
 
     private fun renderNodeTree(scenes: List<Scene>): String {
-        val rootNodes = scenes.map { """val ${it.name} = ${it.name}Scene("/root")""" }.joinLines().indentLine()
+        val rootNodes = scenes.map {
+            """val ${it.name} = ${it.name}Scene("/root/${it.root.name}")"""
+        }.joinLines().indentLine()
 
         return """
         |object GDTree {
@@ -36,18 +38,16 @@ class NodeTreeRenderer {
     }
 
     private fun renderScene(scene: Scene): String {
-        val nodePath = "\$path/${scene.root.name}"
-
         return when (val root = scene.root) {
             is ParentNode -> renderParentNode(
                 node = root,
-                nodePath = nodePath,
+                nodePath = "\$path",
                 className = "${scene.name}Scene",
                 nestedClass = false,
             )
 
             is LeafNode -> """
-            |open class ${scene.name}Scene(private val path: String) : NodeRef<${root.type}>("$nodePath", "${root.type}")
+            |open class ${scene.name}Scene(private val path: String) : NodeRef<${root.type}>(path, "${root.type}")
             """.trimMargin()
 
             is NestedScene -> """
@@ -101,8 +101,9 @@ class NodeTreeRenderer {
             true -> "inner class" to ""
             false -> "open class" to "(private val path: String)"
         }
+        val nodeRefPath = if (nestedClass) "\"$nodePath\"" else "path"
         val header = """
-        |$classType $className$constructor : NodeRef<${node.type}>("$nodePath", "${node.type}")
+        |$classType $className$constructor : NodeRef<${node.type}>($nodeRefPath, "${node.type}")
         """.trimMargin()
 
         val children = node.children.map { child -> renderNode(child, nodePath) }

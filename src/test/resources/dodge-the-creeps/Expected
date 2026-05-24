@@ -5,46 +5,46 @@ import godot.core.NodePath
 import kotlin.reflect.KProperty
 
 object GDTree {
-    val HUD = HUDScene("/root")
-    val Main = MainScene("/root")
-    val Mob = MobScene("/root")
-    val Player = PlayerScene("/root")
+    val HUD = HUDScene("/root/HUD")
+    val Main = MainScene("/root/Main")
+    val Mob = MobScene("/root/Mob")
+    val Player = PlayerScene("/root/Player")
 }
 
-open class HUDScene(private val path: String) : NodeRef<CanvasLayer>("$path/HUD", "CanvasLayer") {
-    val ScoreLabel = NodeRef<Label>("$path/HUD/ScoreLabel", "Label")
-    val MessageLabel = NodeRef<Label>("$path/HUD/MessageLabel", "Label")
-    val StartButton = NodeRef<Button>("$path/HUD/StartButton", "Button")
-    val MessageTimer = NodeRef<Timer>("$path/HUD/MessageTimer", "Timer")
+open class HUDScene(private val path: String) : NodeRef<CanvasLayer>(path, "CanvasLayer") {
+    val ScoreLabel = NodeRef<Label>("$path/ScoreLabel", "Label")
+    val MessageLabel = NodeRef<Label>("$path/MessageLabel", "Label")
+    val StartButton = NodeRef<Button>("$path/StartButton", "Button")
+    val MessageTimer = NodeRef<Timer>("$path/MessageTimer", "Timer")
 }
 
-open class MainScene(private val path: String) : NodeRef<Node>("$path/Main", "Node") {
-    val ColorRect = NodeRef<ColorRect>("$path/Main/ColorRect", "ColorRect")
-    val Player = PlayerScene("$path/Main/Player")
-    val MobTimer = NodeRef<Timer>("$path/Main/MobTimer", "Timer")
-    val ScoreTimer = NodeRef<Timer>("$path/Main/ScoreTimer", "Timer")
-    val StartTimer = NodeRef<Timer>("$path/Main/StartTimer", "Timer")
-    val StartPosition = NodeRef<Marker2D>("$path/Main/StartPosition", "Marker2D")
+open class MainScene(private val path: String) : NodeRef<Node>(path, "Node") {
+    val ColorRect = NodeRef<ColorRect>("$path/ColorRect", "ColorRect")
+    val Player = PlayerScene("$path/Player")
+    val MobTimer = NodeRef<Timer>("$path/MobTimer", "Timer")
+    val ScoreTimer = NodeRef<Timer>("$path/ScoreTimer", "Timer")
+    val StartTimer = NodeRef<Timer>("$path/StartTimer", "Timer")
+    val StartPosition = NodeRef<Marker2D>("$path/StartPosition", "Marker2D")
     val MobPath = MobPathTree()
-    val HUD = HUDScene("$path/Main/HUD")
-    val Music = NodeRef<AudioStreamPlayer>("$path/Main/Music", "AudioStreamPlayer")
-    val DeathSound = NodeRef<AudioStreamPlayer>("$path/Main/DeathSound", "AudioStreamPlayer")
+    val HUD = HUDScene("$path/HUD")
+    val Music = NodeRef<AudioStreamPlayer>("$path/Music", "AudioStreamPlayer")
+    val DeathSound = NodeRef<AudioStreamPlayer>("$path/DeathSound", "AudioStreamPlayer")
 
-    inner class MobPathTree : NodeRef<Path2D>("$path/Main/MobPath", "Path2D") {
-        val MobSpawnLocation = NodeRef<PathFollow2D>("$path/Main/MobPath/MobSpawnLocation", "PathFollow2D")
+    inner class MobPathTree : NodeRef<Path2D>("$path/MobPath", "Path2D") {
+        val MobSpawnLocation = NodeRef<PathFollow2D>("$path/MobPath/MobSpawnLocation", "PathFollow2D")
     }
 }
 
-open class MobScene(private val path: String) : NodeRef<RigidBody2D>("$path/Mob", "RigidBody2D") {
-    val AnimatedSprite2D = NodeRef<AnimatedSprite2D>("$path/Mob/AnimatedSprite2D", "AnimatedSprite2D")
-    val CollisionShape2D = NodeRef<CollisionShape2D>("$path/Mob/CollisionShape2D", "CollisionShape2D")
-    val VisibleOnScreenNotifier2D = NodeRef<VisibleOnScreenNotifier2D>("$path/Mob/VisibleOnScreenNotifier2D", "VisibleOnScreenNotifier2D")
+open class MobScene(private val path: String) : NodeRef<RigidBody2D>(path, "RigidBody2D") {
+    val AnimatedSprite2D = NodeRef<AnimatedSprite2D>("$path/AnimatedSprite2D", "AnimatedSprite2D")
+    val CollisionShape2D = NodeRef<CollisionShape2D>("$path/CollisionShape2D", "CollisionShape2D")
+    val VisibleOnScreenNotifier2D = NodeRef<VisibleOnScreenNotifier2D>("$path/VisibleOnScreenNotifier2D", "VisibleOnScreenNotifier2D")
 }
 
-open class PlayerScene(private val path: String) : NodeRef<Area2D>("$path/Player", "Area2D") {
-    val AnimatedSprite2D = NodeRef<AnimatedSprite2D>("$path/Player/AnimatedSprite2D", "AnimatedSprite2D")
-    val CollisionShape2D = NodeRef<CollisionShape2D>("$path/Player/CollisionShape2D", "CollisionShape2D")
-    val Trail = NodeRef<GPUParticles2D>("$path/Player/Trail", "GPUParticles2D")
+open class PlayerScene(private val path: String) : NodeRef<Area2D>(path, "Area2D") {
+    val AnimatedSprite2D = NodeRef<AnimatedSprite2D>("$path/AnimatedSprite2D", "AnimatedSprite2D")
+    val CollisionShape2D = NodeRef<CollisionShape2D>("$path/CollisionShape2D", "CollisionShape2D")
+    val Trail = NodeRef<GPUParticles2D>("$path/Trail", "GPUParticles2D")
 }
 
 open class NodeRef<T : Node>(
