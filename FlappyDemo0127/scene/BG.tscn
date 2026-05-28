@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://ukvbnbeoqrn6"]
+
+[ext_resource type="Script" uid="uid://du8n1m8ohsifw" path="res://src/main/kotlin/com/example/game/Background.kt" id="1_yuoxb"]
+
+[node name="Background" type="ParallaxBackground"]
+script = ExtResource("1_yuoxb")
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer"]

@@ -1,0 +1,50 @@
+[gd_scene load_steps=8 format=3 uid="uid://dr3m6xnrtjp6m"]
+
+[ext_resource type="Script" uid="uid://w4y6butowo5b" path="res://src/main/kotlin/com/example/game/Main.kt" id="1_o6q0f"]
+[ext_resource type="PackedScene" uid="uid://cad6mbf1p0rs1" path="res://scene/Sky.tscn" id="1_yiwpq"]
+[ext_resource type="PackedScene" uid="uid://gtrjo7aemy5h" path="res://scene/Ground.tscn" id="2_mnmej"]
+[ext_resource type="PackedScene" uid="uid://b5243pds6y3r3" path="res://scene/bird/Bird.tscn" id="3_o6q0f"]
+[ext_resource type="PackedScene" uid="uid://dnmtr3j8y54n2" path="res://scene/Hud.tscn" id="4_s5yxy"]
+[ext_resource type="AudioStream" uid="uid://c6wsxdxr0tgil" path="res://assets/BGMUSIC.mp3" id="5_mnmej"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yiwpq"]
+size = Vector2(597, 10.5)
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_o6q0f")
+
+[node name="Sky" parent="." instance=ExtResource("1_yiwpq")]
+
+[node name="Ground" parent="." instance=ExtResource("2_mnmej")]
+layer = 1
+
+[node name="Bird" parent="." instance=ExtResource("3_o6q0f")]
+position = Vector2(160, 130)
+
+[node name="Hud" parent="." instance=ExtResource("4_s5yxy")]
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(600, 350)
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 2.0
+
+[node name="Ceil" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ceil"]
+position = Vector2(295, 0)
+shape = SubResource("RectangleShape2D_yiwpq")
+
+[node name="Floor" type="Area2D" parent="."]
+position = Vector2(0, 100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+position = Vector2(301.5, 601.25)
+shape = SubResource("RectangleShape2D_yiwpq")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_mnmej")
+volume_db = -10.0
+autoplay = true
+
+[node name="PipesGroup" type="Node2D" parent="."]

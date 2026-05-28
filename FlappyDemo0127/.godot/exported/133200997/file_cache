@@ -1,0 +1,9 @@
+res://assets/white_32.tres::593a82cd8ab1f1b3454795388970f88c::1768140010::res://.godot/exported/133200997/export-4ae0cfe8f0ad547c057f993860258b00-white_32.res
+res://scene/bird/Bird.tscn::3f24f4f1baed928a826eb033ec87bad6::1770129827::res://.godot/exported/133200997/export-5187fd9888dcee7a6d9ce8e449760d5f-Bird.scn
+res://scene/pipe/Pipe.tscn::545a1f6c11b8b8301506a56c6176ab48::1769928272::res://.godot/exported/133200997/export-5a77c354fa2a6921366552bd6067071c-Pipe.scn
+res://scene/pipe/Pipes.tscn::7413d3bef468ba2725db8424c2231150::1769929165::res://.godot/exported/133200997/export-1e3c8de57452b7601f9e7a4926fded2c-Pipes.scn
+res://scene/BG.tscn::4685cde295f4480faa04080ef7c7831d::1770037529::res://.godot/exported/133200997/export-6f5d53f09ea3a735fc34a028dfffbc6d-BG.scn
+res://scene/ground.tscn::2e4fc3884bd1a767825173feb967fe26::1770037529::res://.godot/exported/133200997/export-0a2b8cb869ddb490242f6e2d49a313b8-ground.scn
+res://scene/Hud.tscn::702e2ee082e4e9c504c15a4d7bfd8b22::1770037529::res://.godot/exported/133200997/export-5e4c9760eaee8b3d06e4f70d500cb4f3-Hud.scn
+res://scene/Main.tscn::5942708e47d026634abf1bf965e1f36a::1770129634::res://.godot/exported/133200997/export-3224d1f9a64809cf5cd7fa60e8bd8cdd-Main.scn
+res://scene/Sky.tscn::48c642c1a011cbfc168d83a534a37e1b::1770037529::res://.godot/exported/133200997/export-4e783efcc0c8aac43deb0f2afbe0e383-Sky.scn

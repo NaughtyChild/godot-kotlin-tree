@@ -1,0 +1,15 @@
+Node2D
+AudioStreamPlayer
+CollisionShape2D
+Area2D
+Timer
+Marker2D
+Sprite2D
+ParallaxLayer
+ParallaxBackground
+Control
+Button
+Label
+VBoxContainer
+MarginContainer
+CanvasLayer

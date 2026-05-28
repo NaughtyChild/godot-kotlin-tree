@@ -1,0 +1,62 @@
+[gd_scene load_steps=9 format=3 uid="uid://b5243pds6y3r3"]
+
+[ext_resource type="Script" uid="uid://cvnranx2wvou0" path="res://src/main/kotlin/com/example/game/Bird.kt" id="1_1phhf"]
+[ext_resource type="Texture2D" uid="uid://bihbkg7ud8hcl" path="res://assets/bird1.png" id="1_adukw"]
+[ext_resource type="Texture2D" uid="uid://caavwymrm56gm" path="res://assets/bird2.png" id="2_1phhf"]
+[ext_resource type="Texture2D" uid="uid://bi8e50d2hcuo0" path="res://assets/bird3.png" id="3_3k314"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_7pmkg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_adukw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_1phhf")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_3k314")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qldhj"]
+radius = 17.0
+
+[sub_resource type="Curve" id="Curve_adukw"]
+_data = [Vector2(0.008, 0.993257), 0.0, 0.0, 0, 0, Vector2(0.989333, 0.352697), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_adukw"]
+offsets = PackedFloat32Array(0.00746269, 0.990672)
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 0)
+
+[node name="Bird" type="CharacterBody2D" groups=["bird"]]
+script = ExtResource("1_1phhf")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_7pmkg")
+autoplay = "default"
+frame_progress = 0.585123
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_qldhj")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+show_behind_parent = true
+amount = 5
+texture = ExtResource("1_adukw")
+lifetime = 0.6
+direction = Vector2(-1, 0)
+spread = 0.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 100.0
+initial_velocity_max = 100.0
+scale_amount_curve = SubResource("Curve_adukw")
+color_ramp = SubResource("Gradient_adukw")
+
+[node name="FlySound" type="AudioStreamPlayer2D" parent="."]
+
+[node name="ScoreSound" type="AudioStreamPlayer2D" parent="."]
