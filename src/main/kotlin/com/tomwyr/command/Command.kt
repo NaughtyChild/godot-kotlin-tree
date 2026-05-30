@@ -1,50 +1,64 @@
 package com.tomwyr.command
 
 import com.tomwyr.GodotKotlinTreeInput
-import com.tomwyr.parser.SceneTreeGenerator
+import com.tomwyr.parser.GdjScanner
+import com.tomwyr.parser.MountTreeBuilder
+import com.tomwyr.parser.ProjectScanner
 import org.gradle.api.Project
 import java.nio.file.Paths
 
 class GenerateTreeCommand(
     val projectPath: String,
     val validateProjectPath: Boolean,
-    val outputPath: String,
+    val outputDir: String,
     val packageName: String?,
 ) {
     fun run() {
-        val tree = SceneTreeGenerator.generate(
-            projectPath = projectPath,
-            validate = validateProjectPath,
+        val projectRoot = Paths.get(projectPath)
+
+        val gdjIndex = GdjScanner.scan(projectRoot)
+
+        val tscnFiles = ProjectScanner.findTscnFiles(projectRoot, validateProjectPath)
+
+        val buildResult = MountTreeBuilder.build(
+            tscnFiles = tscnFiles,
+            projectRoot = projectRoot,
+            gdjIndex = gdjIndex,
         )
-        val content = NodeTreeRenderer().render(packageName, tree)
-        NodeTreeWriter().write(content, outputPath)
+
+        for (warning in buildResult.warnings) {
+            System.err.println(warning)
+        }
+
+        val files = BindingsRenderer(packageName).render(buildResult)
+
+        MultiFileWriter().write(outputDir, files)
     }
 
     companion object Factory {
         fun from(project: Project, input: GodotKotlinTreeInput): GenerateTreeCommand {
             val rootPath = project.projectDir.absolutePath
-            val projectPath = getProjectPath(rootPath = rootPath, relativePath = input.projectPath)
-            val outputPath = getOutputPath(rootPath = rootPath, packageName = input.packageName)
+            val projectPath = resolveProjectPath(rootPath, input.projectPath, input.validateProjectPath)
+            val outputDir = Paths.get(
+                rootPath, "build", "generated", "godotBindings", "kotlin"
+            ).toString()
 
             return GenerateTreeCommand(
                 projectPath = projectPath,
                 validateProjectPath = input.validateProjectPath,
-                outputPath = outputPath,
+                outputDir = outputDir,
                 packageName = input.packageName,
             )
         }
 
-        private fun getProjectPath(rootPath: String, relativePath: String?): String {
-            val fileName = "project.godot"
-            val path = Paths.get(rootPath, relativePath ?: "", fileName)
-            return path.toString()
-        }
-
-        private fun getOutputPath(rootPath: String, packageName: String?): String {
-            val buildPath = listOf("build", "generated", "godotNodeTree", "kotlin").toTypedArray()
-            val packagePath = packageName?.split(".")?.toTypedArray() ?: emptyArray()
-            val fileName = "GodotNodeTree.kt"
-            return Paths.get(rootPath, *buildPath, *packagePath, fileName).toString()
+        private fun resolveProjectPath(rootPath: String, relativePath: String?, validate: Boolean): String {
+            val base = Paths.get(rootPath, relativePath ?: "")
+            return if (!validate && relativePath == null) {
+                base.toString()
+            } else {
+                val projectFile = base.resolve("project.godot")
+                if (projectFile.toFile().exists()) base.toString() else base.toString()
+            }
         }
     }
 }

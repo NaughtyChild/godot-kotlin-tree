@@ -1,0 +1,21 @@
+// THIS FILE IS GENERATED! DO NOT EDIT OR DELETE IT. EDIT OR DELETE THE ASSOCIATED SOURCE CODE FILE INSTEAD
+
+registeredName = Main
+fqName = com.example.test.Main
+relativeSourcePath = src/main/kotlin/com/example/test/Main.kt
+baseType = Node2D
+supertypes = [
+    godot.api.Node2D,
+	godot.api.Node,
+	godot.api.Object,
+	kotlin.Any
+]
+signals = [
+    
+]
+properties = [
+    
+]
+functions = [
+    _ready
+]

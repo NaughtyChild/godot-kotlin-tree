@@ -16,6 +16,7 @@ data class RawNode(
     val type: String?,
     val parent: String?,
     val instanceExtId: String?,
+    val scriptExtId: String?,
 )
 
 object TscnParser {
@@ -25,8 +26,26 @@ object TscnParser {
         val extResources = mutableMapOf<String, ExtResourceRef>()
         val nodes = mutableListOf<RawNode>()
 
-        for (line in content.lineSequence()) {
-            val header = parseSectionHeader(line) ?: continue
+        val lines = content.lines()
+        var i = 0
+        while (i < lines.size) {
+            val line = lines[i]
+            if (!isSectionStart(line)) {
+                i++
+                continue
+            }
+
+            val header = parseSectionHeader(line)
+            i++
+
+            val bodyLines = mutableListOf<String>()
+            while (i < lines.size && !isSectionStart(lines[i])) {
+                bodyLines.add(lines[i])
+                i++
+            }
+
+            if (header == null) continue
+
             when (header.tag) {
                 "ext_resource" -> {
                     val id = header.attrs["id"] ?: continue
@@ -40,17 +59,35 @@ object TscnParser {
                     val type = header.attrs["type"]
                     val parent = header.attrs["parent"]
                     val instance = header.attrs["instance"]?.let { extractExtResourceId(it) }
+                    val scriptExtId = parseScriptExtId(bodyLines)
                     nodes += RawNode(
                         name = name,
                         type = type,
                         parent = parent,
                         instanceExtId = instance,
+                        scriptExtId = scriptExtId,
                     )
                 }
             }
         }
 
         return ParsedTscn(extResources = extResources, nodes = nodes)
+    }
+
+    private fun isSectionStart(line: String): Boolean {
+        val trimmed = line.trimStart()
+        return trimmed.startsWith("[") && trimmed.length > 1 && trimmed[1].isLetter()
+    }
+
+    private fun parseScriptExtId(bodyLines: List<String>): String? {
+        for (line in bodyLines) {
+            val trimmed = line.trim()
+            if (trimmed.startsWith("script = ")) {
+                val value = trimmed.removePrefix("script = ").trim()
+                return extractExtResourceId(value)
+            }
+        }
+        return null
     }
 
     private fun extractExtResourceId(value: String): String? {

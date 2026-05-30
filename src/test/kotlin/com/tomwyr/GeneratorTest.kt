@@ -7,65 +7,55 @@ import kotlin.test.assertEquals
 
 class GeneratorTest {
     @Test
-    fun `single scene with nested nodes`() {
-        test("physics-test", "com.physics.test")
-    }
-
-    @Test
-    fun `spaces in node names`() {
-        test("simple", "com.simple.game")
-    }
-
-    @Test
-    fun `multiple independent scenes`() {
-        test("scene-changer", "com.scenes.changer")
-    }
-
-    @Test
-    fun `scene with nested scenes`() {
-        test("waypoints", "com.waypoints.test")
-    }
-
-    @Test
-    fun `multiple scenes`() {
-        test("dodge-the-creeps", "com.example.game")
-    }
-
-    @Test
-    fun `nested scene instances with renamed roots`() {
-        test("nested-instance", "com.nested.instance")
+    fun `simple scene with kotlin script`() {
+        test("bindings-kotlin", "com.example.test")
     }
 }
 
 fun test(testCase: String, packageName: String) {
+    val actualRoot = File("$basePath/$testCase/Actual")
     try {
         val command = setUpTestCommand(testCase, packageName)
         command.run()
-        assertOutputsEqual(testCase)
+        assertOutputsEqual(testCase, packageName)
     } finally {
-        cleanUpGeneratedOutput(testCase)
+        actualRoot.deleteRecursively()
     }
 }
 
-const val basePath = "src/test/resources/"
+const val basePath = "src/test/resources"
 
 fun setUpTestCommand(testCase: String, packageName: String): GenerateTreeCommand {
     return GenerateTreeCommand(
-        projectPath = "$basePath/$testCase/scenes",
+        projectPath = "$basePath/$testCase",
         validateProjectPath = false,
-        outputPath = "$basePath/$testCase/Actual",
+        outputDir = "$basePath/$testCase/Actual",
         packageName = packageName,
     )
 }
 
-fun assertOutputsEqual(testCase: String) {
-    val expected = File("$basePath/$testCase/Expected").readText(Charsets.UTF_8).replace("\r\n", "\n")
-    val actual = File("$basePath/$testCase/Actual").readText(Charsets.UTF_8).replace("\r\n", "\n")
-    assertEquals(expected, actual)
+fun assertOutputsEqual(testCase: String, packageName: String) {
+    val packageDir = packageName.replace('.', '/')
+    val expectedDir = File("$basePath/$testCase/Expected/$packageDir")
+    val actualDir = File("$basePath/$testCase/Actual/$packageDir")
+
+    val expectedFiles = expectedDir.walkTopDown().filter { it.isFile }.sortedBy { it.name }
+    val actualFiles = actualDir.walkTopDown().filter { it.isFile }.sortedBy { it.name }
+
+    assertEquals(
+        expectedFiles.map { it.name }.toSet(),
+        actualFiles.map { it.name }.toSet(),
+        "Generated file list mismatch for $testCase",
+    )
+
+    for (expectedFile in expectedFiles) {
+        val actualFile = File(actualDir, expectedFile.name)
+        val expected = expectedFile.readText(Charsets.UTF_8).replace("\r\n", "\n")
+        val actual = actualFile.readText(Charsets.UTF_8).replace("\r\n", "\n")
+        assertEquals(expected, actual, "Content mismatch for ${expectedFile.name}")
+    }
 }
 
 fun cleanUpGeneratedOutput(testCase: String) {
-    File("$basePath/$testCase/Actual").run {
-        if (exists()) delete()
-    }
+    File("$basePath/$testCase/Actual").deleteRecursively()
 }

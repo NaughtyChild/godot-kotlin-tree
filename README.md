@@ -3,21 +3,32 @@
 > [!Important]
 > The current version of the project has been tested on macOS and **may not work properly** on Linux and Windows.
 
-Godot Kotlin Tree enhances development of Godot games using Kotlin bindings by generating a statically typed object mapping the Godot project nodes to Kotlin.
+> [!Warning]
+> **Breaking change in 2.0.0** — The global `GDTree` object and absolute-path `NodeRef` have been removed.
+> See the [Breaking Changes](#breaking-changes) section for migration guidance.
 
-In short, instead of referencing node with a string path and casting:
+Godot Kotlin Tree enhances development of Godot games using Kotlin bindings by generating typed
+`XxxBindings` objects (relative-path `ChildRef`) for every node that has a `@RegisterClass` Kotlin
+script attached, and `XxxScene` factory objects for every scene whose root node carries a script.
+
+Instead of:
 
 ```kotlin
 getNode(NodePath("/root/Path/To/Some/Nested/Area/Node")) as Area2D
 ```
 
-the same can be achieved using generated typed fields:
+use the generated typed delegate:
 
 ```kotlin
-GDTree.Scene.Path.To.Some.Nested.Area.Node
+@RegisterClass
+class Main : Node2D() {
+    val timer: Timer by MainBindings.Timer
+    val spawnPoint: Marker2D by MainBindings.SpawnPoint
+}
 ```
 
-The references are generated automatically based on the project and scenes declarations meaning that any modifications to the node tree structure can be easily tracked in Kotlin sources. Rebuilding Kotlin project after node paths change will result in compile-time errors that otherwise could become difficult to debug runtime errors.
+The bindings are generated automatically from `.tscn` and `.gdj` files.  Rebuilding after node-tree
+changes produces compile-time errors instead of silent runtime crashes.
 
 For more information about developing Godot games using Kotlin, head to [Godot Kotlin JVM](https://godot-kotl.in/en/stable/) website.
 
@@ -30,24 +41,20 @@ Configure plugin in the `build.gradle.kts` file:
 ```kotlin
 // Add plugin dependency
 plugins {
-  id("io.github.tomwyr.godot-kotlin-tree") version "1.0.0"
-}
-
-// Include generated code in the project sources
-sourceSets {
-    main {
-        kotlin.srcDir("build/generated/godotNodeTree/kotlin")
-    }
+  id("io.github.tomwyr.godot-kotlin-tree") version "2.0.0"
 }
 
 // Optional configuration
 godotNodeTree {
     // Package that the generated code should belong to
     packageName = "your.package.name"
-    // Path to Godot project relative to Kotlin project root
+    // Path to Godot project root relative to Kotlin project root (default: same directory)
     projectPath = "godot/project/path"
 }
 ```
+
+The plugin automatically adds `build/generated/godotBindings/kotlin` as a source set and makes
+`compileKotlin` depend on `generateGodotBindings`.
 
 Add plugin repository declaration to the `settings.gradle.kts` file:
 ```kotlin
@@ -64,56 +71,94 @@ No additional setup of the Godot project is needed.
 
 ## Usage
 
-Create a scene with nodes in Godot Editor and run `generateNodeTree` Gradle task:
+Attach a Kotlin script (`@RegisterClass`) to a node in Godot Editor and run the `generateGodotBindings`
+Gradle task (or just build — `compileKotlin` depends on it automatically):
 
-![image](https://github.com/tomwyr/godot-kotlin-tree/assets/9600796/5231f627-2db4-48e3-9b31-57eff7949f77)
-
-The task will scan your Godot project files and generate node tree representing the scene:
+The task scans `.tscn` and `.gdj` files and generates per-class bindings:
 
 ```kotlin
-// build/generated/godotNodeTree/kotlin/com/example/game/GodotNodeTree.kt
-object GDTree {
-    object Main : NodeRef<Node>("/root/Main", "Node") {
-        val ColorRect = NodeRef<ColorRect>("/root/Main/ColorRect", "ColorRect")
-        val ColorAnimator = NodeRef<Node2D>("/root/Main/ColorAnimator", "Node2D")
-        //...
-    }
+// build/generated/godotBindings/kotlin/com/example/game/MainBindings.kt
+object MainBindings {
+    val Timer = ChildRef<Timer>("Timer")
+    val SpawnPoint = ChildRef<Marker2D>("SpawnPoint")
+    val Hud = ChildRef<Hud>("Hud")
+    // ...
+}
+
+// build/generated/godotBindings/kotlin/com/example/game/MainScene.kt
+object MainScene {
+    const val PATH = "res://scene/Main.tscn"
+    fun instantiate(): Main =
+        (ResourceLoader.load(PATH) as PackedScene).instantiate() as Main
 }
 ```
 
-Reference the generated tree from within `Node` classes:
+Use the generated bindings from within `@RegisterClass` nodes:
 
 ```kotlin
 @RegisterClass
-class ColorAnimator : Node2D() {
-    val colorRect by GDTree.Main.ColorRect
+class Main : Node2D() {
+    val timer: Timer by MainBindings.Timer
+    val spawnPoint: Marker2D by MainBindings.SpawnPoint
 
     @RegisterFunction
-    override fun _process(delta: Double) {
-        super._process(delta)
-        colorRect.color = calcColorForDelta(delta)
+    override fun _ready() {
+        timer.start()
     }
-
-    //...
 }
 ```
 
-Run project:
+### Requirements for binding generation
 
-https://github.com/tomwyr/godot-kotlin-tree/assets/9600796/61637bbc-103f-48d0-a2af-696e1931bf87
+- The node must have a Kotlin script (`res://.../*.kt`) attached in the `.tscn` file.
+- The corresponding `.gdj` file must exist (generated by godot-kotlin-jvm compilation).
+  If `.gdj` is missing the generator emits a warning and skips that node.
+
+### Generated files
+
+| File | Description |
+| ---- | ----------- |
+| `ChildRef.kt` | Delegate class used by all bindings; one file per package |
+| `{ClassName}Bindings.kt` | Flat list of `ChildRef` delegates for every descendant of the scripted node |
+| `{SceneName}Scene.kt` | `PATH` constant + `instantiate()` factory; only for scenes whose **root** node has a script |
 
 ## Compatibility
 
-The plugin works with the following Kotlin/JVM bindigns and Godot engine versions:
+The plugin works with the following Kotlin/JVM bindings and Godot engine versions:
 
 _Note: the end part of bindings version is also the compatible engine version._
 
 | godot-kotlin-tree | godot-kotlin-jvm |
 | ----------------- | ---------------- |
 | 1.0.x             | 0.8.1-4.2.0      |
-| 1.1.x             | 0.13.1-4.4.1      |
+| 1.1.x             | 0.13.1-4.4.1     |
+| 2.0.x             | 0.13.1-4.4.1     |
 
 Other pairs of versions may also work but their compatibility has never been tested and proper behavior of the plugin isn't guaranteed.
+
+## Breaking Changes
+
+### 2.0.0
+
+- **`GDTree` removed** — Replace all `GDTree.Scene.Node` usages with per-class `XxxBindings` objects.
+- **`generateNodeTree` task renamed** to `generateGodotBindings`.
+- **Output directory changed** from `build/generated/godotNodeTree/kotlin` to `build/generated/godotBindings/kotlin`.
+- **`NodeRef` replaced by `ChildRef`** — `ChildRef` uses relative paths; `NodeRef` used absolute `/root/...` paths.
+- **No `GDScript` support** — Only nodes with Kotlin scripts (`.kt`) generate bindings.
+  GDScript nodes without a Kotlin script still appear as children in their parent's bindings using the Godot `type=` from the `.tscn` file.
+- **`.gdj` files required** — Godot Kotlin JVM must be compiled before running `generateGodotBindings` so that `.gdj` descriptor files exist.  Missing `.gdj` files produce a warning (not an error) and the corresponding node is skipped.
+
+### Migration example
+
+**Before (1.x):**
+```kotlin
+val colorRect by GDTree.Main.ColorRect
+```
+
+**After (2.x):**
+```kotlin
+val colorRect: ColorRect by MainBindings.ColorRect
+```
 
 ## Contributing
 

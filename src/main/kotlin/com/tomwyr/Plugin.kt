@@ -13,9 +13,14 @@ class GodotKotlinTree : Plugin<Project> {
 
     private fun registerTask(project: Project) {
         val input = project.extensions.create("godotNodeTree", GodotKotlinTreeInput::class.java)
-        project.tasks.register("generateNodeTree") { task ->
+        project.tasks.register("generateGodotBindings") { task ->
             task.doLast {
                 GenerateTreeCommand.from(project, input).run()
+            }
+        }
+        project.tasks.whenTaskAdded { task ->
+            if (task.name == "compileKotlin") {
+                task.dependsOn("generateGodotBindings")
             }
         }
     }
@@ -23,7 +28,7 @@ class GodotKotlinTree : Plugin<Project> {
     private fun addSourceSet(project: Project) {
         val pluginExt = project.extensions.findByType(KotlinJvmProjectExtension::class.java)
         val sourceSet = pluginExt?.sourceSets?.getByName("main")?.kotlin
-        sourceSet?.srcDirs("build/generated/godotNodeTree/kotlin")
+        sourceSet?.srcDirs("build/generated/godotBindings/kotlin")
     }
 }
 
