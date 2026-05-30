@@ -4,10 +4,9 @@
 registeredName = Hud
 fqName = com.example.game.Hud
 relativeSourcePath = src/main/kotlin/com/example/game/Hud.kt
-baseType = ParallaxBackground
+baseType = CanvasLayer
 supertypes = [
-    godot.api.ParallaxBackground,
-	godot.api.CanvasLayer,
+    godot.api.CanvasLayer,
 	godot.api.Node,
 	godot.api.Object,
 	godot.core.KtObject,

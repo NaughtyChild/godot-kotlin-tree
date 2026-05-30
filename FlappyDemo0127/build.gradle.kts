@@ -1,6 +1,6 @@
 plugins {
     id("com.utopia-rise.godot-kotlin-jvm") version "0.13.1-4.4.1"
-    id("io.github.tomwyr.godot-kotlin-tree") version "1.1.0"
+    id("io.github.tomwyr.godot-kotlin-tree") version "2.0.0"
 }
 
 repositories {
@@ -51,8 +51,6 @@ godot {
     //projectName.set("LibraryProjectName")
 }
 
-sourceSets {
-    main {
-        kotlin.srcDir("build/generated/godotNodeTree/kotlin")
-    }
+godotNodeTree {
+    packageName = "com.example.game"
 }

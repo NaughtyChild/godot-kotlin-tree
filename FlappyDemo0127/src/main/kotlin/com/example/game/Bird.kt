@@ -34,11 +34,7 @@ class Bird : CharacterBody2D() {
     @RegisterProperty
     var maxSpeed = 700
 
-    val animated_sprite_2d by GDTree.Main.Bird.AnimatedSprite2D
-    val animated_sprite_2d1 by GDTree.Bird.AnimatedSprite2D
-
-
-//    lateinit var animated_sprite_2d: AnimatedSprite2D
+    lateinit var animated_sprite_2d: AnimatedSprite2D
     lateinit var cpu_particles_2d: CPUParticles2D
     lateinit var fly_sound: AudioStreamPlayer2D
     lateinit var score_sound: AudioStreamPlayer2D
@@ -74,7 +70,7 @@ class Bird : CharacterBody2D() {
 
     private fun initNode() {
         GD.print("$TAG -- initNode:")
-//        animated_sprite_2d = getNode(spritePath) as AnimatedSprite2D
+        animated_sprite_2d = getNode(spritePath) as AnimatedSprite2D
         cpu_particles_2d = getNode("CPUParticles2D") as CPUParticles2D
         fly_sound = getNode("FlySound") as AudioStreamPlayer2D
         score_sound = getNode("ScoreSound") as AudioStreamPlayer2D

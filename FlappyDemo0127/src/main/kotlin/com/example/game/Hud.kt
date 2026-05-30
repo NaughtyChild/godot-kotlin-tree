@@ -4,12 +4,13 @@ import com.example.game.gamemanager.GameManager
 import godot.annotation.RegisterClass
 import godot.annotation.RegisterFunction
 import godot.api.Button
+import godot.api.CanvasLayer
 import godot.api.Label
 import godot.api.ParallaxBackground
 import godot.global.GD
 
 @RegisterClass
-class Hud : ParallaxBackground() {
+class Hud : CanvasLayer() {
 
     lateinit var scoreLabel: Label
     lateinit var messageLabel: Label

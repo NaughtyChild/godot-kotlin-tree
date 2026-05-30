@@ -1,7 +1,5 @@
 package com.example.game
 
-import NodeRef
-import PipesScene
 import com.example.game.gamemanager.GameManager
 import godot.annotation.RegisterClass
 import godot.annotation.RegisterFunction
