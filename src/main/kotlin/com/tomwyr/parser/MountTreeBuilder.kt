@@ -167,13 +167,20 @@ object MountTreeBuilder {
             when {
                 child.instanceExtId != null -> {
                     val instanceResPath = parsed.extResources[child.instanceExtId]?.path
-                    val type = resolveInstanceType(instanceResPath, ktLoader, sceneRootTypes)
-                    entries.add(BindingEntry(propertyName, relativePath, type))
+                    val resolved = resolveInstanceType(instanceResPath, ktLoader, sceneRootTypes)
+                    entries.add(
+                        BindingEntry(
+                            propertyName = propertyName,
+                            relativePath = relativePath,
+                            type = resolved.simpleName,
+                            kotlinFqName = resolved.kotlinFqName,
+                        ),
+                    )
                 }
 
                 else -> {
                     val type = child.type ?: "Node"
-                    entries.add(BindingEntry(propertyName, relativePath, type))
+                    entries.add(BindingEntry(propertyName, relativePath, type, kotlinFqName = null))
 
                     val childParentKey =
                         if (parentKey == ".") child.name else "$parentKey/${child.name}"
@@ -185,23 +192,28 @@ object MountTreeBuilder {
         }
     }
 
+    private data class ResolvedInstanceType(
+        val simpleName: String,
+        val kotlinFqName: String?,
+    )
+
     private fun resolveInstanceType(
         instanceResPath: String?,
         ktLoader: KtSourceLoader,
         sceneRootTypes: Map<String, SceneRootInfo>,
-    ): String {
-        if (instanceResPath == null) return "Node"
-        val rootInfo = sceneRootTypes[instanceResPath] ?: return "Node"
+    ): ResolvedInstanceType {
+        if (instanceResPath == null) return ResolvedInstanceType("Node", null)
+        val rootInfo = sceneRootTypes[instanceResPath] ?: return ResolvedInstanceType("Node", null)
 
         val scriptResPath = rootInfo.scriptResPath
         if (scriptResPath != null && scriptResPath.endsWith(".kt", ignoreCase = true)) {
             val relSrc = scriptResPath.removePrefix("res://")
             val ktInfo = ktLoader.load(relSrc)
             if (ktInfo != null) {
-                return ktInfo.simpleName
+                return ResolvedInstanceType(ktInfo.simpleName, ktInfo.fqName)
             }
         }
-        return rootInfo.type
+        return ResolvedInstanceType(rootInfo.type, null)
     }
 
     private fun validateMountTrees(mountInfos: List<MountInfo>) {

@@ -87,7 +87,7 @@ pluginManagement {
 
 | Option | Default | Description |
 | ------ | ------- | ----------- |
-| `packageName` | `null` | Package for all generated files (`ChildRef.kt`, `*Bindings.kt`, `*Scene.kt`, `Res.kt`). **Set this to the same package as your game scripts** so instance types like `Bird` resolve at compile time. |
+| `packageName` | `null` | Root package for all generated files (`ChildRef.kt`, `*Bindings.kt`, `*Scene.kt`, `Res.kt`). Game scripts may live in subpackages (e.g. `godot.tank.enemy`); the generator adds `import` lines for Kotlin types outside this root package. |
 | `projectPath` | `null` (Kotlin project root) | Relative path from the Kotlin project root to the Godot project directory containing `project.godot`. |
 | `validateProjectPath` | `true` | When `true`, fails if `project.godot` is not found under the resolved project root. |
 | `resExtensions` | `emptyList()` | File extensions to scan for `generateGodotRes` (e.g. `listOf("wav", "png")`). When empty, `Res.kt` contains an empty `object Res {}`. |
@@ -223,13 +223,14 @@ Re-running `./gradlew build` (which runs `generateGodotBindings`) does **not** d
 
 - The node must have a Kotlin script (`res://.../*.kt`) attached in the `.tscn` file.
 - The `.kt` file must contain a `@RegisterClass` declaration. Missing or unparseable source → warning, node skipped.
-- **`packageName` must match your script package** when bindings reference Kotlin instance types (`Bird`, `Hud`, …). Without it, generated code has no package and Kotlin types will not resolve.
+- **Set `packageName`** to your project's Kotlin root package (e.g. `godot.tank`). Scripts in subpackages are supported; generated bindings and scene factories import them automatically. Without `packageName`, generated code has no package and subpackage types will not resolve.
 
 ### Limitations (2.1.0)
 
 - Only the **first** `@RegisterClass` in a file is recognised; additional classes emit a warning.
 - **`typealias` parent types** are not resolved.
 - **Third-party library scripts** referenced only via `.gdj` (no `.kt` source in the project) are not supported yet.
+- **Same simple name in two subpackages** referenced from one generated file (e.g. `godot.tank.a.Foo` and `godot.tank.b.Foo`) is not supported; use distinct class names or avoid combining both in one parent binding tree.
 
 ### Generation rules
 
@@ -283,7 +284,7 @@ Other version pairs may work but have not been tested.
 - **Output directory** changed from `build/generated/godotNodeTree/kotlin` to `build/generated/godotBindings/kotlin`.
 - **`NodeRef` replaced by `ChildRef`** — relative paths from the scripted node; no more `/root/...` absolute paths.
 - **Manual `sourceSets` no longer required** — the plugin registers the generated directory automatically. Remove old `kotlin.srcDir("build/generated/godotNodeTree/kotlin")` entries.
-- **Set `packageName`** — strongly recommended; required for correct resolution of Kotlin instance types in generated bindings.
+- **Set `packageName`** — strongly recommended; use your project root package. Subpackage scripts are imported automatically in generated bindings.
 - **No `GDScript` binding generation** — only `.kt` script mount points produce `*Bindings` / `*Scene`. GDScript children still appear as `ChildRef<GodotType>` in parent bindings.
 
 ### Migration example (1.x → 2.x)

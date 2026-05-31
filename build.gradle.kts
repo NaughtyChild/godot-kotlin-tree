@@ -5,7 +5,7 @@ import java.util.*
 
 val localProperties = loadLocalProps()
 
-version = "2.2.0"
+version = "2.2.1"
 group = "io.github.nodetree"
 description = "A type-safe Godot node tree representation in Kotlin"
 

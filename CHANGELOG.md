@@ -1,3 +1,9 @@
+# 2.2.1 - 2026-05-31
+
+## Fixed
+
+- Generated `*Scene.kt` and `*Bindings.kt` now add `import` for Kotlin script types in subpackages when `packageName` is the project root package (e.g. scripts in `godot.tank.enemy` with `packageName = "godot.tank"`).
+
 # 2.2.0 - 2026-05-31
 
 ## Added

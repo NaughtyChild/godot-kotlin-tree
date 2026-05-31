@@ -8,6 +8,27 @@ import com.tomwyr.common.SceneInfo
 
 class BindingsRenderer(private val packageName: String?) {
 
+    companion object {
+        internal fun needsKotlinImport(fqName: String, outputPackage: String?): Boolean {
+            val lastDot = fqName.lastIndexOf('.')
+            if (lastDot < 0) return false
+            val typePackage = fqName.substring(0, lastDot)
+            return when (outputPackage) {
+                null -> true
+                else -> typePackage != outputPackage
+            }
+        }
+
+        internal fun renderKotlinImports(fqNames: Iterable<String>, outputPackage: String?): String {
+            val imports = fqNames
+                .filter { needsKotlinImport(it, outputPackage) }
+                .distinct()
+                .sorted()
+            if (imports.isEmpty()) return ""
+            return imports.joinToString(separator = "\n", postfix = "\n") { "import $it" }
+        }
+    }
+
     fun render(result: BuildResult): List<GeneratedFile> {
         val files = mutableListOf<GeneratedFile>()
         files.add(renderChildRef())
@@ -51,10 +72,17 @@ class BindingsRenderer(private val packageName: String?) {
     }
 
     private fun renderBindings(mount: MountInfo): GeneratedFile {
+        val kotlinImports = renderKotlinImports(
+            mount.entries.mapNotNull { it.kotlinFqName },
+            packageName,
+        )
         val content = buildString {
             append(packageDecl())
+            append(kotlinImports)
             if (mount.entries.any { isGodotType(it.type) }) {
                 append("import godot.api.*\n")
+            }
+            if (kotlinImports.isNotEmpty() || mount.entries.any { isGodotType(it.type) }) {
                 append("\n")
             }
             append("object ${mount.classSimpleName}Bindings {\n")
@@ -70,8 +98,10 @@ class BindingsRenderer(private val packageName: String?) {
     }
 
     private fun renderScene(scene: SceneInfo): GeneratedFile {
+        val kotlinImports = renderKotlinImports(listOf(scene.classFqName), packageName)
         val content = buildString {
             append(packageDecl())
+            append(kotlinImports)
             append("import godot.api.PackedScene\n")
             append("import godot.api.ResourceLoader\n")
             append("\n")

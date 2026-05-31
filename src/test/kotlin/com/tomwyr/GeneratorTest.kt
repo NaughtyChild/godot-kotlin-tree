@@ -15,6 +15,11 @@ class GeneratorTest {
     fun `bindings can be generated without any gdj directory`() {
         test("bindings-kotlin-no-gdj", "com.example.test")
     }
+
+    @Test
+    fun `subpackage kotlin types get imports`() {
+        test("bindings-kotlin-subpackage", "godot.tank")
+    }
 }
 
 fun test(testCase: String, packageName: String) {

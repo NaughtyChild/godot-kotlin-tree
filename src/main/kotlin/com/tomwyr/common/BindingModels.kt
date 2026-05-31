@@ -4,6 +4,7 @@ data class BindingEntry(
     val propertyName: String,
     val relativePath: String,
     val type: String,
+    val kotlinFqName: String? = null,
 )
 
 data class MountInfo(
