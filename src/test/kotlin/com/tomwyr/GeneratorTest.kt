@@ -10,6 +10,11 @@ class GeneratorTest {
     fun `simple scene with kotlin script`() {
         test("bindings-kotlin", "com.example.test")
     }
+
+    @Test
+    fun `bindings can be generated without any gdj directory`() {
+        test("bindings-kotlin-no-gdj", "com.example.test")
+    }
 }
 
 fun test(testCase: String, packageName: String) {

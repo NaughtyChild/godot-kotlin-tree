@@ -1,3 +1,29 @@
+# 2.1.0 - 2026-05-31
+
+## Behavior changes
+
+- `generateGodotBindings` no longer depends on `.gdj` files; it resolves `@RegisterClass` metadata from `.kt` sources referenced by `.tscn` scenes.
+- The implicit circular dependency between `compileKotlin` and `generateGodotBindings` has been removed.
+- `generateGodotBindings` is now a true prerequisite of `compileKotlin` and `kspKotlin`; a single `./gradlew build` is sufficient.
+
+## Added
+
+- `KtSourceLoader` — resolves Kotlin script classes on demand from `.tscn` script paths.
+- `MultiFileWriter` atomic writes (staging directory, then replace).
+- `CommandPaths` — shared project-root and output-directory resolution.
+- `bindings-kotlin-no-gdj` test fixture and unit tests for `KtSourceLoader` / `MultiFileWriter`.
+
+## Removed
+
+- `GdjScanner` / `GdjInfo` — binding generation no longer reads `.gdj` files.
+- "Run godot-kotlin-jvm compilation first" as a binding-generation prerequisite.
+
+## Limitations
+
+- Only the first `@RegisterClass` in a file is recognised; additional classes emit a warning.
+- `typealias` parent types are not resolved.
+- Third-party library scripts with only `.gdj` descriptors (no `.kt` source) are not supported yet.
+
 # 2.0.0 - 2026-05-30
 
 ## Breaking changes

@@ -24,7 +24,7 @@ sealed class GodotNodeTreeError : Exception() {
         is UnsupportedUniqueNodeName ->
             "Node `$nodeName` uses the `%` unique-name syntax which is not yet supported."
         is UnresolvedScriptClass ->
-            "No .gdj file found for script `$scriptPath`. Run godot-kotlin-jvm compilation to generate it."
+            "No Kotlin source found for script `$scriptPath`."
     }
 }
 

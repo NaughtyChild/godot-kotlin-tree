@@ -1,13 +1,5 @@
 package com.tomwyr.common
 
-import java.nio.file.Path
-
-data class GdjInfo(
-    val fqName: String,
-    val baseType: String,
-    val supertypes: List<String>,
-)
-
 data class BindingEntry(
     val propertyName: String,
     val relativePath: String,

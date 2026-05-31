@@ -9,7 +9,7 @@ object MountTreeBuilder {
     fun build(
         tscnFiles: List<Path>,
         projectRoot: Path,
-        gdjIndex: Map<String, GdjInfo>,
+        ktLoader: KtSourceLoader,
     ): BuildResult {
         val warnings = mutableListOf<String>()
 
@@ -28,17 +28,19 @@ object MountTreeBuilder {
 
         for ((tscnPath, parsed) in parsedMap) {
             processScene(
-                tscnPath, parsed, projectRoot, gdjIndex, sceneRootTypes, warnings,
+                tscnPath, parsed, projectRoot, ktLoader, sceneRootTypes, warnings,
                 mountInfos, sceneInfos,
             )
         }
 
         validateMountTrees(mountInfos)
 
+        warnings += ktLoader.warnings()
+
         return BuildResult(
             mountInfos = mountInfos.sortedBy { it.classSimpleName },
             sceneInfos = sceneInfos.sortedBy { it.sceneName },
-            warnings = warnings,
+            warnings = warnings.distinct(),
         )
     }
 
@@ -63,7 +65,7 @@ object MountTreeBuilder {
         tscnPath: Path,
         parsed: ParsedTscn,
         projectRoot: Path,
-        gdjIndex: Map<String, GdjInfo>,
+        ktLoader: KtSourceLoader,
         sceneRootTypes: Map<String, SceneRootInfo>,
         warnings: MutableList<String>,
         mountInfos: MutableList<MountInfo>,
@@ -81,24 +83,20 @@ object MountTreeBuilder {
             }
 
             val relativeSourcePath = scriptResPath.removePrefix("res://")
-            val gdjInfo = gdjIndex[relativeSourcePath]
-            if (gdjInfo == null) {
-                warnings.add(
-                    "[godot-kotlin-tree] Warning: no .gdj found for $scriptResPath. " +
-                        "Run godot-kotlin-jvm compilation to generate .gdj files."
-                )
+            val ktInfo = ktLoader.load(relativeSourcePath)
+            if (ktInfo == null) {
                 continue
             }
 
             val parentKey = nodeParentKey(rawNode)
             val entries = buildFlatEntries(
-                parentKey, parsed, gdjIndex, sceneRootTypes, warnings,
+                parentKey, parsed, ktLoader, sceneRootTypes, warnings,
             )
 
             mountInfos.add(
                 MountInfo(
-                    classSimpleName = gdjInfo.fqName.substringAfterLast('.'),
-                    classFqName = gdjInfo.fqName,
+                    classSimpleName = ktInfo.simpleName,
+                    classFqName = ktInfo.fqName,
                     entries = entries,
                 )
             )
@@ -110,8 +108,8 @@ object MountTreeBuilder {
                         SceneInfo(
                             sceneName = SceneName.fromFile(tscnPath),
                             tscnResPath = resPath,
-                            classSimpleName = gdjInfo.fqName.substringAfterLast('.'),
-                            classFqName = gdjInfo.fqName,
+                            classSimpleName = ktInfo.simpleName,
+                            classFqName = ktInfo.fqName,
                         )
                     )
                 }
@@ -130,7 +128,7 @@ object MountTreeBuilder {
     private fun buildFlatEntries(
         parentKey: String,
         parsed: ParsedTscn,
-        gdjIndex: Map<String, GdjInfo>,
+        ktLoader: KtSourceLoader,
         sceneRootTypes: Map<String, SceneRootInfo>,
         warnings: MutableList<String>,
     ): List<BindingEntry> {
@@ -139,7 +137,7 @@ object MountTreeBuilder {
             parentKey = parentKey,
             relativePathPrefix = "",
             parsed = parsed,
-            gdjIndex = gdjIndex,
+            ktLoader = ktLoader,
             sceneRootTypes = sceneRootTypes,
             warnings = warnings,
             entries = entries,
@@ -151,7 +149,7 @@ object MountTreeBuilder {
         parentKey: String,
         relativePathPrefix: String,
         parsed: ParsedTscn,
-        gdjIndex: Map<String, GdjInfo>,
+        ktLoader: KtSourceLoader,
         sceneRootTypes: Map<String, SceneRootInfo>,
         warnings: MutableList<String>,
         entries: MutableList<BindingEntry>,
@@ -169,7 +167,7 @@ object MountTreeBuilder {
             when {
                 child.instanceExtId != null -> {
                     val instanceResPath = parsed.extResources[child.instanceExtId]?.path
-                    val type = resolveInstanceType(instanceResPath, gdjIndex, sceneRootTypes, warnings)
+                    val type = resolveInstanceType(instanceResPath, ktLoader, sceneRootTypes)
                     entries.add(BindingEntry(propertyName, relativePath, type))
                 }
 
@@ -180,7 +178,7 @@ object MountTreeBuilder {
                     val childParentKey =
                         if (parentKey == ".") child.name else "$parentKey/${child.name}"
                     collectEntriesRecursive(
-                        childParentKey, relativePath, parsed, gdjIndex, sceneRootTypes, warnings, entries,
+                        childParentKey, relativePath, parsed, ktLoader, sceneRootTypes, warnings, entries,
                     )
                 }
             }
@@ -189,23 +187,19 @@ object MountTreeBuilder {
 
     private fun resolveInstanceType(
         instanceResPath: String?,
-        gdjIndex: Map<String, GdjInfo>,
+        ktLoader: KtSourceLoader,
         sceneRootTypes: Map<String, SceneRootInfo>,
-        warnings: MutableList<String>,
     ): String {
         if (instanceResPath == null) return "Node"
         val rootInfo = sceneRootTypes[instanceResPath] ?: return "Node"
 
         val scriptResPath = rootInfo.scriptResPath
-        if (scriptResPath != null) {
+        if (scriptResPath != null && scriptResPath.endsWith(".kt", ignoreCase = true)) {
             val relSrc = scriptResPath.removePrefix("res://")
-            val gdj = gdjIndex[relSrc]
-            if (gdj != null) {
-                return gdj.fqName.substringAfterLast('.')
+            val ktInfo = ktLoader.load(relSrc)
+            if (ktInfo != null) {
+                return ktInfo.simpleName
             }
-            warnings.add(
-                "[godot-kotlin-tree] Warning: no .gdj found for $scriptResPath when resolving instance type."
-            )
         }
         return rootInfo.type
     }
