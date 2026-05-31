@@ -25,6 +25,16 @@ sealed class GodotNodeTreeError : Exception() {
             "Node `$nodeName` uses the `%` unique-name syntax which is not yet supported."
         is UnresolvedScriptClass ->
             "No Kotlin source found for script `$scriptPath`."
+        is ScanningResourcesFailed ->
+            "Unable to scan resource files for project at `$projectPath`."
+        is InvalidResourceIdentifier ->
+            "Resource `$resPath` produces an invalid Kotlin identifier (reason: $reason)."
+        is DuplicateResourceSymbol ->
+            "Multiple resources resolve to the same generated symbol `$constPath` " +
+                "(case-insensitive): ${conflictingResPaths.joinToString()}."
+        is DirectoryNameCollision ->
+            "Directories under `$parentPath` collide after PascalCase sanitization " +
+                "(would generate the same nested object name): ${conflictingDirNames.joinToString()}."
     }
 }
 
@@ -52,3 +62,17 @@ class IncompatibleMountTrees(val scriptPath: String) : GodotNodeTreeError()
 class UnsupportedUniqueNodeName(val nodeName: String) : GodotNodeTreeError()
 
 class UnresolvedScriptClass(val scriptPath: String) : GodotNodeTreeError()
+
+class ScanningResourcesFailed(val projectPath: String) : GodotNodeTreeError()
+
+class InvalidResourceIdentifier(val resPath: String, val reason: String) : GodotNodeTreeError()
+
+class DuplicateResourceSymbol(
+    val constPath: String,
+    val conflictingResPaths: List<String>,
+) : GodotNodeTreeError()
+
+class DirectoryNameCollision(
+    val parentPath: String,
+    val conflictingDirNames: List<String>,
+) : GodotNodeTreeError()

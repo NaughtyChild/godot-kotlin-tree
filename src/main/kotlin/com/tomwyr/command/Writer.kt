@@ -72,22 +72,50 @@ open class MultiFileWriter {
     }
 
     private fun replaceDirectory(staging: Path, output: Path) {
+        val preservedResFiles = preserveResFiles(output)
+
         if (Files.exists(output)) {
             output.toFile().deleteRecursively()
         }
 
         try {
             Files.move(staging, output, StandardCopyOption.ATOMIC_MOVE)
-            return
         } catch (_: Exception) {
-            // Fall through to non-atomic move
+            try {
+                Files.move(staging, output)
+            } catch (_: Exception) {
+                copyRecursive(staging, output)
+                staging.toFile().deleteRecursively()
+            }
         }
 
-        try {
-            Files.move(staging, output)
-        } catch (_: Exception) {
-            copyRecursive(staging, output)
-            staging.toFile().deleteRecursively()
+        restorePreservedResFiles(output, preservedResFiles)
+    }
+
+    /**
+     * `generateGodotRes` writes `Res.kt` via [SingleFileWriter] into the same output
+     * tree as bindings. Preserve any existing `Res.kt` when bindings replace the directory.
+     */
+    private fun preserveResFiles(output: Path): List<Pair<String, String>> {
+        if (!Files.exists(output)) return emptyList()
+
+        val preserved = mutableListOf<Pair<String, String>>()
+        Files.walk(output).use { stream ->
+            stream
+                .filter { Files.isRegularFile(it) && it.fileName.toString() == "Res.kt" }
+                .forEach { path ->
+                    val relative = output.relativize(path).toString().replace('\\', '/')
+                    preserved.add(relative to Files.readString(path))
+                }
+        }
+        return preserved
+    }
+
+    private fun restorePreservedResFiles(output: Path, preserved: List<Pair<String, String>>) {
+        for ((relative, content) in preserved) {
+            val target = output.resolve(relative)
+            Files.createDirectories(target.parent)
+            Files.writeString(target, content)
         }
     }
 

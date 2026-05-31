@@ -25,4 +25,19 @@ object CommandPaths {
 
     fun outputDir(rootPath: String): Path =
         Paths.get(rootPath, *OUTPUT_SUBPATH.split('/').toTypedArray())
+
+    fun resOutputFile(project: Project, packageName: String?): Path {
+        val pkgPath = packageName?.replace('.', '/') ?: ""
+        val base = outputDir(project.projectDir.absolutePath)
+        return if (pkgPath.isEmpty()) base.resolve("Res.kt") else base.resolve("$pkgPath/Res.kt")
+    }
+
+    fun resOutputRelativePath(packageName: String?): String {
+        val pkgPath = packageName?.replace('.', '/') ?: ""
+        return if (pkgPath.isEmpty()) {
+            "$OUTPUT_SUBPATH/Res.kt"
+        } else {
+            "$OUTPUT_SUBPATH/$pkgPath/Res.kt"
+        }
+    }
 }

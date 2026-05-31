@@ -1,3 +1,18 @@
+# 2.2.0 - 2026-05-31
+
+## Added
+
+- `generateGodotRes` — manual Gradle task that scans configured resource extensions and generates `Res.kt` with nested `object` paths and `const val` `res://` references (e.g. `Res.Sound.Assets.Hit_Wav`).
+- `resExtensions` and `resExcludeDirs` configuration on `godotNodeTree { }`.
+- `ResScanner`, `ResRenderer`, `SingleFileWriter`, `IdentifierSanitizer`, `ExtensionGroupMapper`, and `ResConflictValidator`.
+- Unit tests and `res-generation` fixtures.
+
+## Notes
+
+- `generateGodotRes` is **not** wired to `compileKotlin`; run `./gradlew generateGodotRes` manually after adding or changing resources.
+- Generated `Res.kt` is written to the same directory as bindings output and does not replace sibling binding files.
+- `generateGodotBindings` preserves any existing `Res.kt` when refreshing bindings.
+
 # 2.1.0 - 2026-05-31
 
 ## Behavior changes
@@ -5,6 +20,8 @@
 - `generateGodotBindings` no longer depends on `.gdj` files; it resolves `@RegisterClass` metadata from `.kt` sources referenced by `.tscn` scenes.
 - The implicit circular dependency between `compileKotlin` and `generateGodotBindings` has been removed.
 - `generateGodotBindings` is now a true prerequisite of `compileKotlin` and `kspKotlin`; a single `./gradlew build` is sufficient.
+- Task inputs now track `**/*.tscn` and `**/*.kt` under the project root (excluding `build/`, `.gradle/`, `.godot/`); `.gdj` is not an input.
+- Upgrade from 2.0.x requires no configuration changes.
 
 ## Added
 
@@ -12,6 +29,10 @@
 - `MultiFileWriter` atomic writes (staging directory, then replace).
 - `CommandPaths` — shared project-root and output-directory resolution.
 - `bindings-kotlin-no-gdj` test fixture and unit tests for `KtSourceLoader` / `MultiFileWriter`.
+
+## Fixed
+
+- `generateGodotBindings` is reliably scheduled before `compileKotlin` / `kspKotlin` on clean builds. godot-kotlin-jvm registers Kotlin tasks before this plugin, so the previous `whenTaskAdded` hook never wired the dependency.
 
 ## Removed
 

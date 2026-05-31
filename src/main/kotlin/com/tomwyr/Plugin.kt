@@ -1,7 +1,9 @@
 package com.tomwyr
 
 import com.tomwyr.command.CommandPaths
+import com.tomwyr.command.GenerateResCommand
 import com.tomwyr.command.GenerateTreeCommand
+import com.tomwyr.common.ResConfig
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskProvider
@@ -9,14 +11,14 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 class GodotKotlinTree : Plugin<Project> {
     override fun apply(project: Project) {
-        val generateBindings = registerTask(project)
+        val input = project.extensions.create("godotNodeTree", GodotKotlinTreeInput::class.java)
+        val generateBindings = registerBindingsTask(project, input)
+        registerResTask(project, input)
         wireKotlinTaskDependencies(project, generateBindings)
         addSourceSet(project)
     }
 
-    private fun registerTask(project: Project): TaskProvider<*> {
-        val input = project.extensions.create("godotNodeTree", GodotKotlinTreeInput::class.java)
-
+    private fun registerBindingsTask(project: Project, input: GodotKotlinTreeInput): TaskProvider<*> {
         return project.tasks.register("generateGodotBindings") { task ->
             task.group = "godot kotlin tree"
             task.description =
@@ -42,6 +44,60 @@ class GodotKotlinTree : Plugin<Project> {
 
             task.doLast {
                 GenerateTreeCommand.from(project, input).run()
+            }
+        }
+    }
+
+    private fun registerResTask(project: Project, input: GodotKotlinTreeInput) {
+        project.tasks.register("generateGodotRes") { task ->
+            task.group = "godot kotlin tree"
+            task.description =
+                "Generates Res.kt with res:// path constants for configured resource extensions."
+
+            task.inputs.files(
+                project.provider {
+                    val extensions = input.resExtensions
+                    val excludeDirs = ResConfig.resolveExcludeDirs(input.resExcludeDirs)
+                    project.fileTree(project.projectDir) { ft ->
+                        if (extensions.isEmpty()) {
+                            ft.exclude("**/*")
+                        } else {
+                            extensions.forEach { ext ->
+                                ft.include("**/*.${ext.lowercase().trimStart('.')}")
+                            }
+                        }
+                        excludeDirs.forEach { dir ->
+                            ft.exclude("**/$dir/**")
+                            ft.exclude("$dir/**")
+                        }
+                        ft.exclude("**/*.import")
+                        ft.exclude("**/*.uid")
+                    }
+                }
+            ).withPropertyName("godotResources")
+
+            task.inputs.property("packageName", input.packageName ?: "")
+            task.inputs.property("projectPath", input.projectPath ?: "")
+            task.inputs.property("validateProjectPath", input.validateProjectPath)
+            task.inputs.property("resExtensions", project.provider { input.resExtensions.toList() })
+            task.inputs.property("resExcludeDirs", project.provider {
+                if (input.resExcludeDirs === GodotKotlinTreeInput.EXCLUDE_DIRS_DEFAULT_SENTINEL) {
+                    "<DEFAULT>"
+                } else {
+                    input.resExcludeDirs.toString()
+                }
+            })
+
+            task.outputs.file(
+                project.layout.buildDirectory.file(
+                    project.provider {
+                        CommandPaths.resOutputRelativePath(input.packageName)
+                    }
+                )
+            ).withPropertyName("generatedRes")
+
+            task.doLast {
+                GenerateResCommand.from(project, input).run()
             }
         }
     }
@@ -73,4 +129,11 @@ open class GodotKotlinTreeInput(
     var projectPath: String? = null,
     var validateProjectPath: Boolean = true,
     var packageName: String? = null,
-)
+    var resExtensions: List<String> = emptyList(),
+    var resExcludeDirs: List<String> = EXCLUDE_DIRS_DEFAULT_SENTINEL,
+) {
+    companion object {
+        internal val EXCLUDE_DIRS_DEFAULT_SENTINEL: List<String> =
+            listOf("\u0000__godot-kotlin-tree:exclude-dirs-default__\u0000")
+    }
+}

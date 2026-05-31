@@ -25,6 +25,9 @@ object ProjectScanner {
         }
     }
 
+    fun resolveProjectRoot(projectPath: Path, validate: Boolean): Path =
+        resolveRootDir(projectPath, validate)
+
     private fun resolveRootDir(projectPath: Path, validate: Boolean): Path {
         if (projectPath.isDirectory()) {
             if (validate) {

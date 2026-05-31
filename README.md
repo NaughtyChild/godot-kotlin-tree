@@ -1,11 +1,13 @@
 # Godot Kotlin Tree
 
 > [!Important]
-> The current version of the project has been tested on macOS and **may not work properly** on Linux and Windows.
+> Tested on macOS and Windows. Linux support is not fully verified yet.
 
 > [!Warning]
 > **Breaking change in 2.0.0** — The global `GDTree` object and absolute-path `NodeRef` have been removed.
 > See the [Breaking Changes](#breaking-changes) section for migration guidance.
+>
+> **2.1.0** removes the `.gdj` prerequisite for binding generation; upgrade from 2.0.x requires no configuration changes.
 
 Godot Kotlin Tree enhances development of Godot games using Kotlin bindings by generating typed
 `XxxBindings` objects (relative-path `ChildRef`) for every node that has a `@RegisterClass` Kotlin
@@ -66,7 +68,7 @@ godotNodeTree {
 The plugin automatically:
 
 - adds `build/generated/godotBindings/kotlin` to the `main` Kotlin source set (**no manual `sourceSets` block needed**);
-- makes `compileKotlin` depend on `generateGodotBindings`.
+- makes `compileKotlin` and `kspKotlin` (when present) depend on `generateGodotBindings`.
 
 > **Do not** keep the old 1.x source set entry:
 > `kotlin.srcDir("build/generated/godotNodeTree/kotlin")` — remove it when upgrading.
@@ -85,9 +87,11 @@ pluginManagement {
 
 | Option | Default | Description |
 | ------ | ------- | ----------- |
-| `packageName` | `null` | Package for all generated files (`ChildRef.kt`, `*Bindings.kt`, `*Scene.kt`). **Set this to the same package as your game scripts** so instance types like `Bird` resolve at compile time. |
+| `packageName` | `null` | Package for all generated files (`ChildRef.kt`, `*Bindings.kt`, `*Scene.kt`, `Res.kt`). **Set this to the same package as your game scripts** so instance types like `Bird` resolve at compile time. |
 | `projectPath` | `null` (Kotlin project root) | Relative path from the Kotlin project root to the Godot project directory containing `project.godot`. |
 | `validateProjectPath` | `true` | When `true`, fails if `project.godot` is not found under the resolved project root. |
+| `resExtensions` | `emptyList()` | File extensions to scan for `generateGodotRes` (e.g. `listOf("wav", "png")`). When empty, `Res.kt` contains an empty `object Res {}`. |
+| `resExcludeDirs` | _(default sentinel)_ | Directories skipped during resource scanning. Unset → exclude `build/`, `.gradle/`, `.godot/`, `out/`, `jvm/`, `gdj/`, `src/`, `.idea/`. `emptyList()` → exclude nothing. A non-empty list replaces the defaults entirely. |
 
 ### Godot
 
@@ -173,6 +177,48 @@ override fun _ready() {
 
 Use bindings from `_ready()` onward. Accessing them earlier (e.g. in field initializers) may fail if the scene tree is not ready yet.
 
+### Resource path generation (`generateGodotRes`)
+
+Run manually after adding or changing Godot resource files:
+
+```bash
+./gradlew generateGodotRes
+```
+
+Configure which extensions to scan:
+
+```kotlin
+godotNodeTree {
+    packageName = "com.example.game"
+    resExtensions = listOf("wav", "mp3", "png", "ttf", "tres", "gdshader")
+}
+```
+
+This writes `Res.kt` under `build/generated/godotBindings/kotlin/<package>/`. The generated directory is already on the Kotlin source path, but **`generateGodotRes` is not run automatically during `build`** — run it before referencing `Res` in your code.
+
+**Naming:** resources are grouped by type and directory. A file `assets/hit.wav` becomes `Res.Sound.Assets.Hit_Wav`:
+
+```kotlin
+hit = ResourceLoader.load(Res.Sound.Assets.Hit_Wav) as AudioStream
+```
+
+**Example generated structure:**
+
+```kotlin
+object Res {
+    object Sound {
+        object Assets {
+            const val Hit_Wav = "res://assets/hit.wav"
+            const val Point_Wav = "res://assets/point.wav"
+        }
+    }
+}
+```
+
+Duplicate symbol paths (case-insensitive) and colliding directory names after sanitization cause generation to fail with an error listing the conflicting paths.
+
+Re-running `./gradlew build` (which runs `generateGodotBindings`) does **not** delete an existing `Res.kt`; bindings generation preserves it in the output directory.
+
 ### Requirements for binding generation
 
 - The node must have a Kotlin script (`res://.../*.kt`) attached in the `.tscn` file.
@@ -204,6 +250,7 @@ Use bindings from `_ready()` onward. Accessing them earlier (e.g. in field initi
 | `ChildRef.kt` | Delegate helper; **one file** under the configured `packageName` |
 | `{ClassName}Bindings.kt` | Flat `ChildRef` fields for every direct/indirect child of the scripted node (subject to instance rules above) |
 | `{SceneName}Scene.kt` | `PATH` + `instantiate()`; only when the **scene root** has a Kotlin script |
+| `Res.kt` | Nested `object` tree with `const val` paths; from `generateGodotRes` when `resExtensions` is configured |
 
 ## Compatibility
 
@@ -213,6 +260,7 @@ Use bindings from `_ready()` onward. Accessing them earlier (e.g. in field initi
 | 1.1.x             | 0.13.1-4.4.1     |
 | 2.0.x             | 0.13.1-4.4.1     |
 | 2.1.x             | 0.13.1-4.4.1     |
+| 2.2.x             | 0.13.1-4.4.1     |
 
 _Note: the suffix of the godot-kotlin-jvm version is also the compatible Godot engine version._
 
@@ -225,6 +273,7 @@ Other version pairs may work but have not been tested.
 - **Binding generation no longer reads `.gdj`** — resolves `@RegisterClass` from `.kt` sources referenced in `.tscn` files.
 - **Single-step build** — `./gradlew build` generates bindings before `compileKotlin`; no manual two-phase workflow.
 - **`kspKotlin` also depends on `generateGodotBindings`** when KSP is used (godot-kotlin-jvm).
+- **Upgrade from 2.0.x** — bump the plugin version only; no `godotNodeTree { }` or workflow changes required.
 - See [Limitations](#limitations-210) for `@RegisterClass` parsing constraints.
 
 ### 2.0.0

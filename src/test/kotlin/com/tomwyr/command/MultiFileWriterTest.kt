@@ -57,6 +57,23 @@ class MultiFileWriterTest {
     }
 
     @Test
+    fun `preserves existing Res kt when replacing output directory`() {
+        val output = workDir.resolve("out")
+        Files.createDirectories(output.resolve("com/example/test"))
+        Files.writeString(output.resolve("com/example/test/Res.kt"), "object Res {}\n")
+        Files.writeString(output.resolve("com/example/test/MainBindings.kt"), "legacy bindings")
+
+        MultiFileWriter().write(
+            output.toString(),
+            listOf(GeneratedFile("com/example/test/Fresh.kt", "fresh")),
+        )
+
+        assertEquals("object Res {}\n", Files.readString(output.resolve("com/example/test/Res.kt")))
+        assertEquals("fresh", Files.readString(output.resolve("com/example/test/Fresh.kt")))
+        assertFalse(Files.exists(output.resolve("com/example/test/MainBindings.kt")))
+    }
+
+    @Test
     fun `keeps old output and cleans staging when write fails`() {
         val output = workDir.resolve("out")
         Files.createDirectories(output)
