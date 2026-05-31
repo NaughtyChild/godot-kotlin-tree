@@ -5,8 +5,8 @@ import java.util.*
 
 val localProperties = loadLocalProps()
 
-version = "1.1.0"
-group = "io.github.tomwyr"
+version = "2.0.0"
+group = "io.github.nodetree"
 description = "A type-safe Godot node tree representation in Kotlin"
 
 plugins {
@@ -54,7 +54,7 @@ gradlePlugin {
 
     plugins {
         create("godot-kotlin-tree") {
-            id = "io.github.tomwyr.godot-kotlin-tree"
+            id = "io.github.nodetree.godot-kotlin-tree"
             displayName = "Godot Kotlin Tree"
             description = "A type-safe Godot node tree representation in Kotlin"
             tags = listOf("godot", "kotlin", "node", "tree")
