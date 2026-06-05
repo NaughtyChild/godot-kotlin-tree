@@ -1,5 +1,9 @@
 # 2.2.1 - 2026-05-31
 
+## Behavior changes
+
+- When `resExtensions` is non-empty, `generateGodotBindings` now depends on `generateGodotRes`, so `./gradlew build` refreshes `Res.kt` before bindings and compilation.
+
 ## Fixed
 
 - Generated `*Scene.kt` and `*Bindings.kt` now add `import` for Kotlin script types in subpackages when `packageName` is the project root package (e.g. scripts in `godot.tank.enemy` with `packageName = "godot.tank"`).
@@ -15,7 +19,6 @@
 
 ## Notes
 
-- `generateGodotRes` is **not** wired to `compileKotlin`; run `./gradlew generateGodotRes` manually after adding or changing resources.
 - Generated `Res.kt` is written to the same directory as bindings output and does not replace sibling binding files.
 - `generateGodotBindings` preserves any existing `Res.kt` when refreshing bindings.
 

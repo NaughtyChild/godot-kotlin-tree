@@ -179,12 +179,6 @@ Use bindings from `_ready()` onward. Accessing them earlier (e.g. in field initi
 
 ### Resource path generation (`generateGodotRes`)
 
-Run manually after adding or changing Godot resource files:
-
-```bash
-./gradlew generateGodotRes
-```
-
 Configure which extensions to scan:
 
 ```kotlin
@@ -194,7 +188,17 @@ godotNodeTree {
 }
 ```
 
-This writes `Res.kt` under `build/generated/godotBindings/kotlin/<package>/`. The generated directory is already on the Kotlin source path, but **`generateGodotRes` is not run automatically during `build`** — run it before referencing `Res` in your code.
+When `resExtensions` is non-empty, **`./gradlew build` runs `generateGodotRes` automatically before `generateGodotBindings`** (then `compileKotlin`). You do not need a separate manual step for normal development.
+
+To refresh only resource references:
+
+```bash
+./gradlew generateGodotRes
+```
+
+If `Res.kt` looks stale after adding files, run with `--rerun-tasks`.
+
+This writes `Res.kt` under `build/generated/godotBindings/kotlin/<package>/`. The generated directory is already on the Kotlin source path. With `resExtensions` left empty (default), no resource scan runs during build.
 
 **Naming:** resources are grouped by type and directory. A file `assets/hit.wav` becomes `Res.Sound.Assets.Hit_Wav`:
 
@@ -217,7 +221,7 @@ object Res {
 
 Duplicate symbol paths (case-insensitive) and colliding directory names after sanitization cause generation to fail with an error listing the conflicting paths.
 
-Re-running `./gradlew build` (which runs `generateGodotBindings`) does **not** delete an existing `Res.kt`; bindings generation preserves it in the output directory.
+`generateGodotBindings` runs after `generateGodotRes` and **does not** delete `Res.kt`; bindings generation preserves it in the output directory.
 
 ### Requirements for binding generation
 

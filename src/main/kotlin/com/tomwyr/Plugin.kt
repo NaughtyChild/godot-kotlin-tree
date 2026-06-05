@@ -12,14 +12,18 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 class GodotKotlinTree : Plugin<Project> {
     override fun apply(project: Project) {
         val input = project.extensions.create("godotNodeTree", GodotKotlinTreeInput::class.java)
-        val generateBindings = registerBindingsTask(project, input)
-        registerResTask(project, input)
+        val generateRes = registerResTask(project, input)
+        val generateBindings = registerBindingsTask(project, input, generateRes)
         wireKotlinTaskDependencies(project, generateBindings)
         addSourceSet(project)
     }
 
-    private fun registerBindingsTask(project: Project, input: GodotKotlinTreeInput): TaskProvider<*> {
-        return project.tasks.register("generateGodotBindings") { task ->
+    private fun registerBindingsTask(
+        project: Project,
+        input: GodotKotlinTreeInput,
+        generateRes: TaskProvider<*>,
+    ): TaskProvider<*> {
+        val bindings = project.tasks.register("generateGodotBindings") { task ->
             task.group = "godot kotlin tree"
             task.description =
                 "Generates per-script `*Bindings` and `*Scene` Kotlin files from .tscn + .kt sources."
@@ -46,10 +50,16 @@ class GodotKotlinTree : Plugin<Project> {
                 GenerateTreeCommand.from(project, input).run()
             }
         }
+        project.afterEvaluate {
+            if (input.resExtensions.isNotEmpty()) {
+                bindings.configure { task -> task.dependsOn(generateRes) }
+            }
+        }
+        return bindings
     }
 
-    private fun registerResTask(project: Project, input: GodotKotlinTreeInput) {
-        project.tasks.register("generateGodotRes") { task ->
+    private fun registerResTask(project: Project, input: GodotKotlinTreeInput): TaskProvider<*> {
+        return project.tasks.register("generateGodotRes") { task ->
             task.group = "godot kotlin tree"
             task.description =
                 "Generates Res.kt with res:// path constants for configured resource extensions."
